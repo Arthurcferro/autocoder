@@ -281,7 +281,12 @@ def create_client(project_dir: Path, model: str, yolo_mode: bool = False) -> tup
         # Include Playwright MCP server for browser automation (standard mode only)
         mcp_servers["playwright"] = {
             "command": "npx",
-            "args": ["@playwright/mcp@latest", "--viewport-size", "1280x720"],
+            "args": [
+                "@playwright/mcp@latest",
+                "--executable-path", "/mnt/c/Program Files (x86)/Google/Chrome/Application/chrome.exe",
+                "--isolated",
+                "--viewport-size", "1280x720",
+            ],
         }
 
     client = ClaudeSDKClient(
