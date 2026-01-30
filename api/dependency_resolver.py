@@ -278,7 +278,7 @@ def compute_scheduling_scores(features: list[dict]) -> dict[int, float]:
     2. Depth in graph - Features with no dependencies (roots) are "shovel-ready"
     3. User priority - Existing priority field as tiebreaker
 
-    Score formula: (1000 * unblock) + (100 * depth_score) + (10 * priority_factor)
+    Score formula: (1000 * priority_factor) + (100 * unblock) + (10 * depth_score)
 
     Args:
         features: List of feature dicts with id, priority, dependencies fields
@@ -325,6 +325,8 @@ def compute_scheduling_scores(features: list[dict]) -> dict[int, float]:
     # Normalize and compute scores
     max_depth = max(depths.values()) if depths else 0
     max_downstream = max(downstream.values()) if downstream else 0
+    priorities = [f.get("priority", 999) for f in features]
+    max_priority = max(priorities) if priorities else 1
 
     scores: dict[int, float] = {}
     for f in features:
@@ -337,10 +339,12 @@ def compute_scheduling_scores(features: list[dict]) -> dict[int, float]:
         depth_score = 1 - (depths[fid] / max_depth) if max_depth > 0 else 1
 
         # Priority factor: 0-1, lower priority number = higher factor
+        # Uses full range of priorities so ALL features get meaningful scores
         priority = f.get("priority", 999)
-        priority_factor = (10 - min(priority, 10)) / 10
+        priority_factor = 1 - (priority / max_priority) if max_priority > 0 else 0
 
-        scores[fid] = (1000 * unblock) + (100 * depth_score) + (10 * priority_factor)
+        # Priority is the DOMINANT factor, with unblocking as tiebreaker
+        scores[fid] = (1000 * priority_factor) + (100 * unblock) + (10 * depth_score)
 
     return scores
 
