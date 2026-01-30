@@ -138,6 +138,25 @@ PLAYWRIGHT_TOOLS = [
     "mcp__playwright__browser_install",
 ]
 
+# Context7 MCP tools for library documentation lookup
+# Includes both naming formats: SDK mcp_servers config (mcp__context7__*)
+# and Claude Code global plugin (mcp__plugin_context7_context7__*)
+CONTEXT7_TOOLS = [
+    "mcp__context7__resolve-library-id",
+    "mcp__context7__query-docs",
+    "mcp__plugin_context7_context7__resolve-library-id",
+    "mcp__plugin_context7_context7__query-docs",
+]
+
+# Grep MCP tools for text search (regex, natural language, counting)
+GREP_MCP_TOOLS = [
+    "mcp__grep__grep_search_intent",
+    "mcp__grep__grep_regex",
+    "mcp__grep__grep_count",
+    "mcp__grep__grep_files_with_matches",
+    "mcp__grep__grep_advanced",
+]
+
 # Built-in tools
 BUILTIN_TOOLS = [
     "Read",
@@ -181,7 +200,7 @@ def create_client(
     """
     # Build allowed tools list based on mode
     # In YOLO mode, exclude Playwright tools for faster prototyping
-    allowed_tools = [*BUILTIN_TOOLS, *FEATURE_MCP_TOOLS]
+    allowed_tools = [*BUILTIN_TOOLS, *FEATURE_MCP_TOOLS, *CONTEXT7_TOOLS, *GREP_MCP_TOOLS]
     if not yolo_mode:
         allowed_tools.extend(PLAYWRIGHT_TOOLS)
 
@@ -201,6 +220,10 @@ def create_client(
         "WebSearch",
         # Allow Feature MCP tools for feature management
         *FEATURE_MCP_TOOLS,
+        # Allow Context7 MCP tools for documentation lookup
+        *CONTEXT7_TOOLS,
+        # Allow Grep MCP tools for text search
+        *GREP_MCP_TOOLS,
     ]
     if not yolo_mode:
         # Allow Playwright MCP tools for browser automation (standard mode only)
@@ -230,9 +253,9 @@ def create_client(
     print(f"   - Filesystem restricted to: {project_dir.resolve()}")
     print("   - Bash commands restricted to allowlist (see security.py)")
     if yolo_mode:
-        print("   - MCP servers: features (database) - YOLO MODE (no Playwright)")
+        print("   - MCP servers: features (database), context7 (docs) - YOLO MODE (no Playwright)")
     else:
-        print("   - MCP servers: playwright (browser), features (database)")
+        print("   - MCP servers: playwright (browser), features (database), context7 (docs)")
     print("   - Project settings enabled (skills, commands, CLAUDE.md)")
     print()
 
@@ -254,6 +277,14 @@ def create_client(
                 "PROJECT_DIR": str(project_dir.resolve()),
                 "PYTHONPATH": str(Path(__file__).parent.resolve()),
             },
+        },
+        "context7": {
+            "command": "npx",
+            "args": ["-y", "@upstash/context7-mcp@latest"],
+        },
+        "grep": {
+            "command": "npx",
+            "args": ["-y", "@247arjun/mcp-grep"],
         },
     }
     if not yolo_mode:

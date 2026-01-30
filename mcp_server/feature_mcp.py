@@ -777,7 +777,8 @@ def feature_get_ready(
                 ready.append(f.to_dict())
 
         # Sort by scheduling score (higher = first), then priority, then id
-        scores = compute_scheduling_scores(all_dicts)
+        # Use only ready features for scoring so completed features don't skew priorities
+        scores = compute_scheduling_scores(ready)
         ready.sort(key=lambda f: (-scores.get(f["id"], 0), f["priority"], f["id"]))
 
         return json.dumps({
